@@ -44,6 +44,7 @@ namespace Watched_It
                 string str = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + @"\Watched It.exe";
                 key.SetValue("WatchedIt", str);
             }
+            ItemControl.ItemsSource = CardList;
         }
 
 
@@ -87,7 +88,7 @@ namespace Watched_It
                 //GridList.Children.Add(newCard);
                 CardList.Add(newCard);
             }
-            ItemControl.ItemsSource = CardList;
+            CollectionViewSource.GetDefaultView(CardList).Refresh();
             SortCardList("Last Edited", true);
         }
 
