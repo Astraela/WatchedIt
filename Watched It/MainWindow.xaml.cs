@@ -26,16 +26,16 @@ namespace Watched_It
     /// </summary>
     public partial class MainWindow : Window
     {
-        string filepath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\TvTracker\TvTrackerData.txt";
+        string filepath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\WatchedIt\WatchedItData.txt";
         List<Item> ItemList = new List<Item>();
         List<ItemCard> CardList = new List<ItemCard>();
         public MainWindow()
         {
             InitializeComponent();
-            Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\TvTracker");
-            
-            LoadData();
+            Directory.CreateDirectory(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + @"\WatchedIt");
+
             tb.Icon = Watched_It.Properties.Resources.WatchedIt;
+            LoadData();
 
             SetupContextMenu();
              if (!Debugger.IsAttached)
@@ -52,7 +52,8 @@ namespace Watched_It
             if (!File.Exists(filepath))
             {
                 Debug.WriteLine("No file found!");
-                tb.ShowBalloonTip("We're up!", "Double click to open or Right click for more", tb.Icon);
+                tb.ShowBalloonTip("We're up!", "Double click the tray icon to open or Right click for more", BalloonIcon.Info);
+                SaveData();
                 return;
             }
 
