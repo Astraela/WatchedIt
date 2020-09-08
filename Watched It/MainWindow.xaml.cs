@@ -117,6 +117,7 @@ namespace Watched_It
             thread.Start();
             SaveData();
             SetupContextMenu();
+            RefreshSort();
         }
 
         public void Delete(ItemCard card, Item item)
@@ -223,12 +224,21 @@ namespace Watched_It
                 ItemCard card = cardlist[i];
                 MenuItem mi = new MenuItem();
                 mi.Header = card.item.name;
-                MenuItem season = new MenuItem();
-                season.Header = "Increase Season by 1";
-                season.Click += card.IncreaseSeason;
-                MenuItem Episode = new MenuItem();
-                Episode.Header = "Increase Episode by 1";
-                Episode.Click += card.IncreaseEpisode;
+                Console.WriteLine(card.item.type);
+                mi.Header = card.item.name;
+                if (card.item.type == Type.Series)
+                {
+                    MenuItem season = new MenuItem();
+                    season.Header = "Increase Season("+ card.item.season +") by 1";
+                    season.Click += card.IncreaseSeason;
+                    MenuItem Episode = new MenuItem();
+                    Episode.Header = "Increase Episode(" + card.item.episode + ") by 1";
+                    Episode.Click += card.IncreaseEpisode;
+                    mi.Items.Add(season);
+                    mi.Items.Add(Episode);
+                }
+                mi.MouseDoubleClick += card.OverlayButton_Click;
+               
                 MenuItem Progress = new MenuItem();
                 Progress.Header = "Change Progress";
                 Progress.Click += card.ChangeProgress;
@@ -240,8 +250,6 @@ namespace Watched_It
                 Update.Click += card.OverlayButton_Click;
 
                 s = new Separator();
-                mi.Items.Add(season);
-                mi.Items.Add(Episode);
                 mi.Items.Add(Progress);
                 mi.Items.Add(Completed);
                 mi.Items.Add(s);
@@ -271,6 +279,7 @@ namespace Watched_It
         public void RefreshSort()
         {
             SortCardList(((ComboBoxItem)SortBox.SelectedItem).Content.ToString(), OrderButton.Content.ToString() == "⬆");
+            CollectionViewSource.GetDefaultView(CardList).Refresh();
         }
     }
     public class doubleclicc : ICommand

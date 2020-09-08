@@ -36,9 +36,9 @@ namespace Watched_It
         {
             // make an HTTP Get request
             string data = "";
-            if (item.name == "")
+            if (item == null || item.name == "")
                 return;
-            var request = (HttpWebRequest)WebRequest.Create("https://www.google.com/search?q=" + item.name + " new poster" + "&tbm=isch");
+            var request = (HttpWebRequest)WebRequest.Create("https://www.google.com/search?q=" + item.name + " new " + item.type.ToString() + " poster" + "&tbm=isch");
             request.UserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36";
             using (var webResponse = (HttpWebResponse)request.GetResponse())
             {
@@ -55,8 +55,7 @@ namespace Watched_It
                     }
                 }
             }
-
-
+            if (data == "") return;
 
 
             int urlStart = data.IndexOf("[\"http", StringComparison.Ordinal);
