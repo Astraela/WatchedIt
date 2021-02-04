@@ -25,7 +25,7 @@
             <ComboBoxItem Content="Series"/>
         </ComboBox>
         <Button x:Name="button" Content="Create" HorizontalAlignment="Left" Margin="10,150.6,0,0" Grid.Row="1" VerticalAlignment="Top" Width="288" Height="34" FontSize="20" Click="button_Click" Background="#FF0B0B0B" Foreground="White" BorderBrush="#FF3F3F3F"/>
-        <CheckBox x:Name="Completed" Content="Completed" Margin="15,116.6,0,0" Grid.Row="1" VerticalAlignment="Top" FontSize="20" HorizontalAlignment="Left" VerticalContentAlignment="Center" Background="{x:Null}" Foreground="White"/>
+        <CheckBox x:Name="Completed" Content="Completed" Margin="10,116,0,0" Grid.Row="1" VerticalAlignment="Top" FontSize="20" HorizontalAlignment="Left" VerticalContentAlignment="Center" Foreground="White" Height="25" Width="116"/>
 
     </Grid>
 </Window>

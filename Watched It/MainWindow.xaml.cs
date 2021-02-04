@@ -71,10 +71,10 @@ namespace Watched_It
 
         public void SetupCardImages()
         {
-            foreach (ItemCard card in CardList)
+            List<ItemCard> tempList = CardList.ToList();
+            foreach (ItemCard card in tempList)
             {
-                Thread thread = new Thread(card.SetupImage);
-                thread.Start();
+                card.SetupImage();
             }
         }
 
@@ -90,6 +90,8 @@ namespace Watched_It
             }
             CollectionViewSource.GetDefaultView(CardList).Refresh();
             SortCardList("Last Edited", true);
+            Thread imageSetup = new Thread(SetupCardImages);
+            imageSetup.Start();
         }
 
         private void button_Click(object sender, RoutedEventArgs e)
@@ -216,7 +218,11 @@ namespace Watched_It
             MenuItem mi1 = new MenuItem();
             mi1.Header = "Open Window";
             mi1.Click += OpenWindow;
+            MenuItem mi2 = new MenuItem();
+            mi2.Header = "Create New";
+            mi2.Click += button_Click;
             cm.Items.Add(mi1);
+            cm.Items.Add(mi2);
             Separator s = new Separator();
             cm.Items.Add(s);
             for (int i = 0; i < Math.Min(3,cardlist.Count); i++)

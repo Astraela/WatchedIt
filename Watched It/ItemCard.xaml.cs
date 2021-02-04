@@ -29,57 +29,80 @@ namespace Watched_It
         public ItemCard(Item _item)
         {
             InitializeComponent();
-            UpdateContent(_item,false);
+            UpdateContent(_item,false,false);
         }
 
         public void SetupImage()
         {
-            // make an HTTP Get request
-            string data = "";
-            if (item == null || item.name == "")
-                return;
-            var request = (HttpWebRequest)WebRequest.Create("https://www.google.com/search?q=" + item.name + " new " + item.type.ToString() + " poster" + "&tbm=isch");
-            request.UserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36";
-            using (var webResponse = (HttpWebResponse)request.GetResponse())
+            try
             {
-                using (Stream dataStream = webResponse.GetResponseStream())
+                // make an HTTP Get request
+                string data = "";
+                if (item == null || item.name == "")
+                    return;
+                var request = (HttpWebRequest)WebRequest.Create("https://www.bing.com/images/search?q=" + item.name + " " + item.type.ToString() + " poster" + "&form=HDRSC2&qft=+filterui:age-lt1051200+filterui:imagesize-custom_500_800");
+                //var request = (HttpWebRequest)WebRequest.Create("https://www.google.com/search?q=" + item.name + " new " + item.type.ToString() + " poster" + "&tbm=isch");
+                request.UserAgent = "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36";
+                using (var webResponse = (HttpWebResponse)request.GetResponse())
                 {
-                    if (dataStream == null)
+                    using (Stream dataStream = webResponse.GetResponseStream())
                     {
-                        data = "";
-                        return;
-                    }
-                    using (var sr = new StreamReader(dataStream))
-                    {
-                        data = sr.ReadToEnd();
+                        if (dataStream == null)
+                        {
+                            data = "";
+                            return;
+                        }
+                        using (var sr = new StreamReader(dataStream))
+                        {
+                            data = sr.ReadToEnd();
+                        }
                     }
                 }
-            }
-            if (data == "") return;
+                if (data == "") return;
 
+                Console.WriteLine(data);
+                //int urlStart = data.IndexOf("[\"http", StringComparison.Ordinal);
+                int urlStart = data.IndexOf("data-src=\"https", StringComparison.Ordinal);
+                Console.WriteLine(urlStart);
+                int imageLocation = data.IndexOf("?w=", urlStart, StringComparison.Ordinal);
+                //int imageLocation = data.IndexOf(".jpg",urlStart, StringComparison.Ordinal);
 
-            int urlStart = data.IndexOf("[\"http", StringComparison.Ordinal);
-            int imageLocation = data.IndexOf(".jpg",urlStart, StringComparison.Ordinal);
-
-
-            if (imageLocation == 0||urlStart == 0)
-                return;
-
-            while (true)
-            {
-                int newUrl = data.IndexOf("[\"http", urlStart + 5, StringComparison.Ordinal);
-                if (newUrl > imageLocation)
-                    break;
-                if (newUrl == 0)
+                if (imageLocation == 0 || urlStart == 0)
                     return;
-                urlStart = newUrl;
-            }
 
-            string url = data.Substring(urlStart+2, imageLocation - urlStart + 2);
-            image.Dispatcher.Invoke((Action)(() =>
+                while (true)
+                {
+                    int newUrl = data.IndexOf("data-src=\"https", urlStart + 10, StringComparison.Ordinal);
+                    if (newUrl > imageLocation)
+                    {
+                        Console.WriteLine(data[newUrl]);
+                        Console.WriteLine(data[newUrl - 12]);
+                        Console.WriteLine(data[newUrl + 45]);
+                        if(data[newUrl-12] != 'w' || data[urlStart - 12] != 'w')
+                        {
+                            imageLocation = data.IndexOf("?w=", imageLocation+50, StringComparison.Ordinal);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    if (newUrl == 0 || newUrl == -1)
+                        return;
+                    urlStart = newUrl;
+                }
+
+                string url = data.Substring(urlStart + 10, imageLocation - urlStart - 7);
+                Console.WriteLine(url);
+                image.Dispatcher.Invoke((Action)(() =>
+                {
+                    image.Source = new BitmapImage(new Uri(url + "500"));
+                }));
+            }
+            catch (Exception e)
             {
-                image.Source = new BitmapImage(new Uri(url));
-            }));
+
+            }
 
         }
 
@@ -89,13 +112,15 @@ namespace Watched_It
             update.ShowDialog();
         }
 
-        public void UpdateContent(Item _item, bool isUpdate = true)
+        public void UpdateContent(Item _item, bool isUpdate = true,bool setupImages = true)
         {
             if ((string)Title.Content != _item.name)
             {
                 Title.Content = _item.name;
-                Thread thread = new Thread(SetupImage);
-                thread.Start();
+                if (setupImages) {
+                    Thread thread = new Thread(SetupImage);
+                    thread.Start();
+                }
             }
             item = _item;
             if (!_item.completed)
