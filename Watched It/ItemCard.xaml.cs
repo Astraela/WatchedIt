@@ -25,7 +25,8 @@ namespace Watched_It
     public partial class ItemCard : UserControl
     {
         public Item item;
-
+        public bool ImageLoaded = false;
+        public string savedUrl = "";
         public ItemCard(Item _item)
         {
             InitializeComponent();
@@ -36,6 +37,20 @@ namespace Watched_It
         {
             try
             {
+                if(savedUrl != "")
+                {
+                    image.Dispatcher.Invoke((Action)(() =>
+                    {
+                        var bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.UriSource = new Uri(savedUrl);
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.EndInit();
+                        image.Source = bitmap;
+                    }));
+                    return;
+                }
+
                 // make an HTTP Get request
                 string data = "";
                 if (item == null || item.name == "")
@@ -60,10 +75,8 @@ namespace Watched_It
                 }
                 if (data == "") return;
 
-                Console.WriteLine(data);
                 //int urlStart = data.IndexOf("[\"http", StringComparison.Ordinal);
                 int urlStart = data.IndexOf("data-src=\"https", StringComparison.Ordinal);
-                Console.WriteLine(urlStart);
                 int imageLocation = data.IndexOf("?w=", urlStart, StringComparison.Ordinal);
                 //int imageLocation = data.IndexOf(".jpg",urlStart, StringComparison.Ordinal);
 
@@ -75,9 +88,6 @@ namespace Watched_It
                     int newUrl = data.IndexOf("data-src=\"https", urlStart + 10, StringComparison.Ordinal);
                     if (newUrl > imageLocation)
                     {
-                        Console.WriteLine(data[newUrl]);
-                        Console.WriteLine(data[newUrl - 12]);
-                        Console.WriteLine(data[newUrl + 45]);
                         if(data[newUrl-12] != 'w' || data[urlStart - 12] != 'w')
                         {
                             imageLocation = data.IndexOf("?w=", imageLocation+50, StringComparison.Ordinal);
@@ -93,16 +103,29 @@ namespace Watched_It
                 }
 
                 string url = data.Substring(urlStart + 10, imageLocation - urlStart - 7);
-                Console.WriteLine(url);
+                savedUrl = url + "500";
+                if (!ImageLoaded)
+                    return;
                 image.Dispatcher.Invoke((Action)(() =>
                 {
-                    image.Source = new BitmapImage(new Uri(url + "500"));
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.UriSource = new Uri(savedUrl);
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+                    image.Source = bitmap;
                 }));
             }
             catch (Exception e)
             {
 
             }
+
+        }
+
+        public void UnloadImage()
+        {
+            image.Source = null;
 
         }
 
@@ -155,7 +178,6 @@ namespace Watched_It
             {
                 Progress.Visibility = Visibility.Hidden;
             }
-            Debug.WriteLine(item.LastEdited);
             if (isUpdate)
             {
                 item.LastEdited = (int)DateTime.Now.Subtract(DateTime.MinValue.AddYears(1969)).TotalSeconds;

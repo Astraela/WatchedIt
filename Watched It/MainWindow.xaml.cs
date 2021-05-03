@@ -90,8 +90,6 @@ namespace Watched_It
             }
             CollectionViewSource.GetDefaultView(CardList).Refresh();
             SortCardList("Last Edited", true);
-            Thread imageSetup = new Thread(SetupCardImages);
-            imageSetup.Start();
         }
 
         private void button_Click(object sender, RoutedEventArgs e)
@@ -195,11 +193,55 @@ namespace Watched_It
             SortCardList(((ComboBoxItem)SortBox.SelectedItem).Content.ToString(), OrderButton.Content.ToString() == "⬆");
             CollectionViewSource.GetDefaultView(CardList).Refresh();
         }
-    
+
+        private bool IsUserVisible(FrameworkElement element, FrameworkElement container)
+        {
+            if (!element.IsVisible)
+                return false;
+
+            Rect bounds = element.TransformToAncestor(container).TransformBounds(new Rect(0.0, 0.0, element.ActualWidth, element.ActualHeight));
+            Rect rect = new Rect(0.0, 0.0, container.ActualWidth, container.ActualHeight);
+            return rect.Contains(bounds.TopLeft) || rect.Contains(bounds.BottomRight);
+        }
+
+        private void ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+
+            List<ItemCard> tempList = CardList.ToList();
+            foreach (ItemCard card in tempList)
+            {
+                if (this.IsVisible && IsUserVisible(card, this))
+                {  
+                    if (!card.ImageLoaded)
+                    {
+                        card.ImageLoaded = true;
+                        Thread imageSetup = new Thread(card.SetupImage);
+                        imageSetup.Start();
+                    }
+                }
+                else
+                {
+                    if (card.ImageLoaded)
+                    {
+                        card.ImageLoaded = false;
+                        card.UnloadImage();
+                    }
+                }
+            }
+        }
+
         private void OpenWindow(object sender, RoutedEventArgs e)
         {
             this.Show();
+            ScrollChanged(null, null);
+/*           if (!ImagesLoaded)
+            {
+                ImagesLoaded = true;
+                Thread imageSetup = new Thread(SetupCardImages);
+                imageSetup.Start();
+            }*/
         }
+
 
         private void ExitWindow(object sender, RoutedEventArgs e)
         {
@@ -230,7 +272,6 @@ namespace Watched_It
                 ItemCard card = cardlist[i];
                 MenuItem mi = new MenuItem();
                 mi.Header = card.item.name;
-                Console.WriteLine(card.item.type);
                 mi.Header = card.item.name;
                 if (card.item.type == Type.Series)
                 {
@@ -275,11 +316,12 @@ namespace Watched_It
         {
             e.Cancel = true;
             this.Hide();
+            ScrollChanged(null, null);
         }
 
         public void doubleclicked()
         {
-            this.Show();
+            OpenWindow(null,null);
         }
 
         public void RefreshSort()
@@ -287,6 +329,7 @@ namespace Watched_It
             SortCardList(((ComboBoxItem)SortBox.SelectedItem).Content.ToString(), OrderButton.Content.ToString() == "⬆");
             CollectionViewSource.GetDefaultView(CardList).Refresh();
         }
+
     }
     public class doubleclicc : ICommand
     {
